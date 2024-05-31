@@ -1,10 +1,13 @@
 package socket
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"io"
 	"log"
+	"net/http"
 )
 
 func Initialize(c *fiber.Ctx) error {
@@ -21,23 +24,37 @@ func Initialize(c *fiber.Ctx) error {
 }
 
 func Handle(c *websocket.Conn) {
-	log.Println(c.Locals("Allowed"))
+	method := c.Query("m")
 
 	var (
 		mt  int
 		msg []byte
 		err error
 	)
-	for {
-		if mt, msg, err = c.ReadMessage(); err != nil {
-			log.Println("read:", err)
-			break
-		}
-		log.Printf("recv: %s", msg)
 
-		if err = c.WriteMessage(mt, msg); err != nil {
-			log.Println("write:", err)
-			break
+	type AuthModel struct {
+		UserKey  string `json:"k"`
+		UserHwid string `json:"h"`
+	}
+
+	for {
+		if method == "auth" {
+			if mt, msg, err = c.ReadMessage(); err != nil {
+				log.Println("read:", err)
+				break
+			}
+			log.Println(msg)
+
+			authModel := AuthModel{}
+
+			json.Unmarshal(msg, &authModel)
+			resp, _ := http.Get(fmt.Sprintf("http://localhost:3070/api/v1/auth?key=%s&hwid=%s", authModel.UserKey, authModel.UserHwid))
+			body, err := io.ReadAll(resp.Body)
+
+			if err = c.WriteMessage(mt, body); err != nil {
+				log.Println("write:", err)
+				break
+			}
 		}
 	}
 }

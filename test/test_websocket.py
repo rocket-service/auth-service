@@ -1,10 +1,11 @@
 from websocket import create_connection
+import json
 
 # Create connection with our web-socket server
-ws = create_connection("ws://localhost:3071/ws/1")
+ws = create_connection("ws://localhost:3071/handle?m=auth")
 
-# Send a hello, world string to out web-socket server
-ws.send("Hello, World")
+# Send JSON styled request to server with user data
+ws.send(json.dumps({'k': 'test_key', 'h': 'test_hardware'}))
 
 # Receive result returned from web-socket server
 print(f'Received: {ws.recv()}')

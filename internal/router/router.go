@@ -8,12 +8,11 @@ import (
 
 func Serve() (app *fiber.App) {
 	app = fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-		EnablePrintRoutes:     true,
+		AppName: "Rocket authorization service",
 	})
 
-	app.Use("/ws", socket.Initialize)
-	app.Get("/ws/:id", websocket.New(socket.Handle))
+	app.Use("/handle", socket.Initialize)
+	app.Get("/handle", websocket.New(socket.Handle))
 
 	return
 }

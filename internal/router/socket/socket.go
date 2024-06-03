@@ -43,11 +43,15 @@ func Handle(c *websocket.Conn) {
 				log.Println("read:", err)
 				break
 			}
-			log.Println(msg)
 
 			authModel := AuthModel{}
 
-			json.Unmarshal(msg, &authModel)
+			err := json.Unmarshal(msg, &authModel)
+			if err != nil {
+				return
+			}
+
+			// @note: don;t use request to web-api. Make communication with database
 			resp, _ := http.Get(fmt.Sprintf("http://localhost:3070/api/v1/auth?key=%s&hwid=%s", authModel.UserKey, authModel.UserHwid))
 			body, err := io.ReadAll(resp.Body)
 
